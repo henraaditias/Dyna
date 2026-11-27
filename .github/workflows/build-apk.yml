@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - master
 
 jobs:
   build:
@@ -15,21 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find Android project
-        id: project
+      - name: Read Gradle version
+        id: gradle_version
         shell: bash
         run: |
-          WRAPPER=$(find . -type f -name gradlew -not -path '*/.git/*' -print -quit)
+          FILE="gradle/wrapper/gradle-wrapper.properties"
 
-          if [ -z "$WRAPPER" ]; then
-            echo "ERROR: File gradlew tidak ditemukan."
-            echo "Pastikan Gradle Wrapper (gradlew, gradlew.bat, dan folder gradle/wrapper) sudah di-commit ke repository."
+          if [ ! -f "$FILE" ]; then
+            echo "ERROR: $FILE tidak ditemukan."
+            echo "Periksa isi folder gradle di repository."
             exit 1
           fi
 
-          PROJECT_DIR=$(dirname "$WRAPPER")
-          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-          echo "Gradle project ditemukan di: $PROJECT_DIR"
+          URL=$(grep '^distributionUrl=' "$FILE" | cut -d= -f2-)
+          VERSION=$(echo "$URL" | sed -E 's/.*gradle-([0-9][0-9.]*)-(bin|all)\.zip.*/\1/')
+
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: Versi Gradle tidak dapat dibaca dari $FILE"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Gradle version: $VERSION"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -39,12 +45,11 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ steps.gradle_version.outputs.version }}
 
       - name: Build debug APK
-        working-directory: ${{ steps.project.outputs.project_dir }}
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
