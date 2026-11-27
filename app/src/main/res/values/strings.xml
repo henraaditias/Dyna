@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dyna</string>
+
+    <!-- Navigation -->
+    <string name="nav_beranda">Beranda</string>
+    <string name="nav_kapsul">Kapsul</string>
+    <string name="nav_aktivitas">Aktivitas</string>
+    <string name="nav_pengaturan">Pengaturan</string>
+
+    <!-- Top Bar & Status -->
+    <string name="status_overlay_active">OVERLAY AKTIF</string>
+    <string name="status_overlay_ready">SIAP OVERLAY</string>
+    <string name="status_permission_needed">IZIN DIPERLUKAN</string>
+    <string name="cd_open_settings">Buka Pengaturan</string>
+    <string name="cd_dyna_island">Kapsul Dyna, ketuk untuk memperluas atau menciutkan</string>
+
+    <!-- Beranda -->
+    <string name="beranda_overlay_section">OVERLAY UTAMA</string>
+    <string name="beranda_overlay_title">Tampilkan Kapsul di Atas Layar</string>
+    <string name="beranda_overlay_desc_ready">Menampilkan kapsul Dyna secara langsung di bagian atas layar perangkat.</string>
+    <string name="beranda_overlay_desc_need_perm">Berikan izin tampil di atas aplikasi lain agar kapsul dapat muncul di layar.</string>
+    <string name="beranda_permissions_section">IZIN SISTEM</string>
+
+    <!-- Permissions -->
+    <string name="perm_overlay_title">Tampil di Atas Aplikasi Lain</string>
+    <string name="perm_overlay_desc">Wajib agar kapsul tampil di atas layar.</string>
+    <string name="perm_notif_title">Akses Notifikasi</string>
+    <string name="perm_notif_desc">Opsional untuk membaca ringkasan notifikasi masuk.</string>
+    <string name="perm_granted">Aktif</string>
+    <string name="perm_not_granted">Belum Aktif</string>
+    <string name="action_open_settings">Pengaturan</string>
+
+    <!-- Foreground Notification -->
+    <string name="fgs_channel_name">Layanan Kapsul Dyna</string>
+    <string name="fgs_channel_desc">Menjaga kapsul Dyna tetap tampil di bagian atas layar</string>
+    <string name="fgs_notif_title">Dyna aktif di layar</string>
+    <string name="fgs_notif_body">Ketuk Matikan untuk menutup kapsul mengambang.</string>
+    <string name="fgs_action_stop">Matikan</string>
+
+    <!-- Kapsul (Tampilan + Tema) -->
+    <string name="kapsul_seg_geometry">Geometri</string>
+    <string name="kapsul_seg_theme">Tema</string>
+    <string name="kapsul_live_hint_on">Perubahan langsung diterapkan ke kapsul di atas layar.</string>
+    <string name="kapsul_live_hint_off">Aktifkan overlay di Beranda agar perubahan terlihat langsung di atas layar.</string>
+    <string name="tampilan_width">Lebar</string>
+    <string name="tampilan_height">Tinggi</string>
+    <string name="tampilan_radius">Radius Sudut</string>
+    <string name="tampilan_offset">Jarak Atas</string>
+    <string name="tampilan_anim_enabled">Animasi Pegas</string>
+    <string name="tampilan_anim_enabled_desc">Nonaktifkan untuk transisi instan.</string>
+    <string name="tampilan_anim_speed">Kecepatan</string>
+    <string name="tampilan_auto_collapse">Tutup Otomatis</string>
+    <string name="tampilan_reset">Reset Geometri</string>
+
+    <!-- Tema -->
+    <string name="tema_selected">Dipilih</string>
+    <string name="tema_custom_section">WARNA KUSTOM</string>
+    <string name="tema_contrast_ok">Kontras aman dibaca</string>
+    <string name="tema_contrast_low">Kontras rendah, pilih kombinasi warna lebih kontras.</string>
+    <string name="tema_color_bg">Latar</string>
+    <string name="tema_color_fg">Teks</string>
+    <string name="tema_color_accent">Aksen</string>
+    <string name="tema_color_icon">Ikon</string>
+
+    <!-- Aktivitas (Timer + Notifikasi) -->
+    <string name="aktivitas_seg_timer">Timer</string>
+    <string name="aktivitas_seg_notifikasi">Notifikasi</string>
+    <string name="aktivitas_timer_enable">Tampilkan Timer di Kapsul</string>
+    <string name="aktivitas_timer_enable_desc">Hitung mundur tetap tampil selama overlay aktif.</string>
+    <string name="aktivitas_timer_idle">Tidak ada timer berjalan</string>
+    <string name="aktivitas_start_1m">Mulai 01:00</string>
+    <string name="aktivitas_start_5m">Mulai 05:00</string>
+    <string name="aktivitas_pause">Jeda</string>
+    <string name="aktivitas_resume">Lanjut</string>
+    <string name="aktivitas_stop">Hentikan</string>
+
+    <!-- Notifikasi -->
+    <string name="notif_privacy_banner">Dyna hanya memproses notifikasi di perangkat saat Anda mengaktifkan akses dan tidak mengirim data ke mana pun.</string>
+    <string name="notif_locked_notice">Aktifkan Akses Notifikasi di Pengaturan Android untuk membaca notifikasi masuk.</string>
+    <string name="notif_enable_feature">Tampilkan Notifikasi Masuk</string>
+    <string name="notif_enable_feature_desc">Teruskan notifikasi sistem ke kapsul atas layar.</string>
+    <string name="notif_show_preview">Tampilkan Isi Pesan</string>
+    <string name="notif_show_preview_desc">Sembunyikan teks detail pesan saat dinonaktifkan.</string>
+    <string name="notif_auto_expand">Perluas Otomatis</string>
+    <string name="notif_auto_expand_desc">Kapsul otomatis terbuka sejenak saat notifikasi tiba.</string>
+
+    <!-- Pengaturan -->
+    <string name="pengaturan_general_section">SISTEM &amp; RESET</string>
+    <string name="pengaturan_reset_title">Reset Semua Setelan</string>
+    <string name="pengaturan_reset_desc">Kembalikan geometri, tema, dan preferensi ke awal.</string>
+    <string name="pengaturan_reset_confirm_title">Reset Setelan Dyna?</string>
+    <string name="pengaturan_reset_confirm_body">Semua kustomisasi tampilan, tema, dan aktivitas akan dikembalikan ke setelan awal.</string>
+    <string name="pengaturan_confirm">Reset</string>
+    <string name="pengaturan_cancel">Batal</string>
+    <string name="pengaturan_limits_section">PRIVASI &amp; PERANGKAT</string>
+    <string name="pengaturan_limits_body">Overlay menggunakan izin sistem resmi Android tanpa Layanan Aksesibilitas. Beberapa perangkat mungkin membatasi layanan latar belakang bila penghemat baterai ketat aktif.</string>
+    <string name="pengaturan_install_guide_section">PANDUAN INSTALASI HP</string>
+    <string name="pengaturan_install_guide_body">1. Jika muncul peringatan Play Protect, ketuk \"Rincian selengkapnya\" lalu pilih \"Tetap instal\".\n2. Hapus (uninstall) versi lama terlebih dahulu jika instalasi baru gagal karena konflik signature.</string>
+    <string name="pengaturan_about_section">DIAGNOSTIK</string>
+    <string name="pengaturan_version_label">Dyna v1.1</string>
+</resources>

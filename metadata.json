@@ -1,0 +1,6 @@
+{
+  "name": "Dyna",
+  "description": "Aplikasi utilitas Android bergaya Dynamic Island dengan pratinjau langsung, kustomisasi tampilan, dan pengelolaan aktivitas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
