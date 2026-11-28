@@ -17,19 +17,61 @@ android {
     versionName = "1.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    manifestPlaceholders["appName"] = "Dyna"
   }
 
   // Do not remove or modify these signingConfigs. They are necessary for building, installing,
   // and updating Android apps in AI Studio.
   signingConfigs {
+    getByName("debug") {
+      enableV1Signing = true
+      enableV2Signing = true
+      enableV3Signing = true
+    }
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val keystorePath =
+        System.getenv("KEYSTORE_FILE")
+          ?: System.getenv("KEYSTORE_PATH")
+          ?: (project.findProperty("KEYSTORE_FILE") as? String)
+          ?: "${rootDir}/my-upload-key.jks"
+      val keystorePassword =
+        System.getenv("KEYSTORE_PASSWORD")
+          ?: System.getenv("STORE_PASSWORD")
+          ?: (project.findProperty("KEYSTORE_PASSWORD") as? String)
+      val releaseKeyAlias =
+        System.getenv("KEY_ALIAS")
+          ?: (project.findProperty("KEY_ALIAS") as? String)
+          ?: "upload"
+      val releaseKeyPassword =
+        System.getenv("KEY_PASSWORD")
+          ?: (project.findProperty("KEY_PASSWORD") as? String)
+
+      val keystoreFile = rootProject.file(keystorePath)
+      if (
+        keystoreFile.exists() &&
+          !keystorePassword.isNullOrBlank() &&
+          !releaseKeyPassword.isNullOrBlank()
+      ) {
+        storeFile = keystoreFile
+        storePassword = keystorePassword
+        keyAlias = releaseKeyAlias
+        keyPassword = releaseKeyPassword
+      } else {
+        val customDebugKeystore = file("${rootDir}/debug.keystore")
+        if (customDebugKeystore.exists()) {
+          storeFile = customDebugKeystore
+          storePassword = "android"
+          keyAlias = "androiddebugkey"
+          keyPassword = "android"
+        } else {
+          initWith(signingConfigs.getByName("debug"))
+        }
+      }
     }
     create("debugConfig") {
+      enableV1Signing = true
+      enableV2Signing = true
+      enableV3Signing = true
       val customKeystore = file("${rootDir}/debug.keystore")
       if (customKeystore.exists()) {
         storeFile = customKeystore
@@ -52,12 +94,16 @@ android {
       signingConfig = signingConfigs.getByName("release")
     }
     debug {
+      applicationIdSuffix = ".debug"
+      versionNameSuffix = "-debug"
+      manifestPlaceholders["appName"] = "Dyna Debug"
       val customKeystore = file("${rootDir}/debug.keystore")
-      signingConfig = if (customKeystore.exists()) {
-        signingConfigs.getByName("debugConfig")
-      } else {
-        signingConfigs.getByName("debug")
-      }
+      signingConfig =
+        if (customKeystore.exists()) {
+          signingConfigs.getByName("debugConfig")
+        } else {
+          signingConfigs.getByName("debug")
+        }
     }
   }
   compileOptions {

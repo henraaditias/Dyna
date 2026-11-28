@@ -74,11 +74,19 @@ class AndroidPermissionStateProvider(private val context: Context) : PermissionS
       } else {
         true
       }
+    val hasLocation =
+      ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED
+    val hasCalendar =
+      ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) ==
+        PackageManager.PERMISSION_GRANTED
 
     return PermissionSnapshot(
       hasOverlayPermission = hasOverlay,
       hasNotificationAccess = hasNotifAccess,
       hasPostNotificationsPermission = hasPostNotif,
+      hasLocationPermission = hasLocation,
+      hasCalendarPermission = hasCalendar,
     )
   }
 }

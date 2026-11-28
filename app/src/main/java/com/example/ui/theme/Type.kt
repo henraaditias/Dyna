@@ -28,108 +28,112 @@ val JetBrainsMonoFontFamily =
   )
 
 object DynaMonoTypography {
-  val LabelMonoCaps =
+  val LabelMono =
     TextStyle(
       fontFamily = JetBrainsMonoFontFamily,
       fontWeight = FontWeight.Medium,
-      fontSize = 11.sp,
-      lineHeight = 14.sp,
-      letterSpacing = 0.88.sp,
+      fontSize = 12.sp,
+      lineHeight = 15.6.sp,
+      letterSpacing = 0.36.sp,
+      fontFeatureSettings = "tnum",
     )
+
+  val LabelMonoCaps = LabelMono
 
   val LabelCode =
     TextStyle(
       fontFamily = JetBrainsMonoFontFamily,
-      fontWeight = FontWeight.Normal,
-      fontSize = 13.sp,
-      lineHeight = 19.sp,
-      letterSpacing = 0.26.sp,
+      fontWeight = FontWeight.Medium,
+      fontSize = 12.sp,
+      lineHeight = 15.6.sp,
+      letterSpacing = 0.36.sp,
+      fontFeatureSettings = "tnum",
     )
 
   val TabularTimer =
     TextStyle(
       fontFamily = JetBrainsMonoFontFamily,
       fontWeight = FontWeight.Medium,
-      fontSize = 22.sp,
-      lineHeight = 26.sp,
-      letterSpacing = (-0.3).sp,
+      fontSize = 20.sp,
+      lineHeight = 24.sp,
+      letterSpacing = (-0.2).sp,
       fontFeatureSettings = "tnum",
     )
 }
 
 val DynaTypography =
   Typography(
+    // headline-xl: 2rem (32sp)
     displayLarge =
       TextStyle(
         fontFamily = GeistFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 36.sp,
-        lineHeight = 41.sp,
-        letterSpacing = (-0.9).sp,
+        fontSize = 32.sp,
+        lineHeight = 36.8.sp,
+        letterSpacing = (-0.8).sp,
       ),
+    // headline-lg: 1.5rem (24sp)
     headlineLarge =
       TextStyle(
         fontFamily = GeistFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 28.sp,
-        lineHeight = 35.sp,
-        letterSpacing = (-0.42).sp,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        lineHeight = 28.8.sp,
+        letterSpacing = (-0.48).sp,
       ),
     headlineMedium =
       TextStyle(
         fontFamily = GeistFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
-        lineHeight = 31.sp,
-        letterSpacing = (-0.36).sp,
+        lineHeight = 28.8.sp,
+        letterSpacing = (-0.48).sp,
       ),
+    // headline-md: 1.125rem (18sp)
     titleLarge =
       TextStyle(
         fontFamily = GeistFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
-        lineHeight = 25.sp,
-        letterSpacing = (-0.18).sp,
+        lineHeight = 23.4.sp,
+        letterSpacing = (-0.27).sp,
       ),
+    // headline-sm: 0.9375rem (15sp)
     titleMedium =
       TextStyle(
         fontFamily = GeistFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-        letterSpacing = (-0.12).sp,
+        fontSize = 15.sp,
+        lineHeight = 20.25.sp,
+        letterSpacing = (-0.15).sp,
       ),
+    // body-lg: 0.9375rem (15sp)
     bodyLarge =
       TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 25.sp,
-        letterSpacing = (-0.08).sp,
+        fontSize = 15.sp,
+        lineHeight = 22.5.sp,
+        letterSpacing = (-0.075).sp,
       ),
+    // body-md: 0.875rem (14sp)
     bodyMedium =
       TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 21.sp,
+        lineHeight = 20.3.sp,
         letterSpacing = 0.sp,
       ),
+    // body-sm: 0.75rem (12sp)
     bodySmall =
       TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        lineHeight = 17.sp,
+        lineHeight = 16.8.sp,
         letterSpacing = 0.sp,
       ),
-    labelMedium = DynaMonoTypography.LabelMonoCaps,
-    labelSmall =
-      TextStyle(
-        fontFamily = JetBrainsMonoFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
-        letterSpacing = 0.4.sp,
-      ),
+    labelMedium = DynaMonoTypography.LabelMono,
+    labelSmall = DynaMonoTypography.LabelMono,
   )

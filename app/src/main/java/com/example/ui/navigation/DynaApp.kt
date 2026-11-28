@@ -1,54 +1,43 @@
 package com.example.ui.navigation
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -60,68 +49,83 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.AppContainer
-import com.example.R
-import com.example.ui.components.BentoCanvasBackground
-import com.example.ui.components.DynaStatusBadge
-import com.example.ui.screens.AktivitasScreen
+import com.example.domain.model.DashboardThemeMode
+import com.example.ui.components.DynaCanvasBackground
 import com.example.ui.screens.BerandaScreen
-import com.example.ui.screens.KapsulScreen
+import com.example.ui.screens.GayaScreen
 import com.example.ui.screens.PengaturanScreen
+import com.example.ui.screens.PermissionGateScreen
+import com.example.ui.screens.SplashScreen
+import com.example.ui.theme.DynaTheme
+import com.example.ui.theme.LocalDynaStrings
 import com.example.ui.theme.LocalDynaTokens
 import com.example.ui.viewmodel.DynaViewModel
 
 object DynaRoute {
+  const val SPLASH = "splash"
+  const val GATE = "gate"
   const val BERANDA = "beranda"
-  const val KAPSUL = "kapsul"
-  const val AKTIVITAS = "aktivitas"
+  const val GAYA = "gaya"
   const val PENGATURAN = "pengaturan"
 }
 
-private data class DynaDestination(
+private data class DynaTabItem(
   val route: String,
-  val labelRes: Int,
   val selectedIcon: ImageVector,
   val unselectedIcon: ImageVector,
+  val testTag: String,
 )
 
-private val primaryDestinations =
+private val primaryTabs =
   listOf(
-    DynaDestination(DynaRoute.BERANDA, R.string.nav_beranda, Icons.Filled.Home, Icons.Outlined.Home),
-    DynaDestination(
-      DynaRoute.KAPSUL,
-      R.string.nav_kapsul,
-      Icons.Filled.Layers,
-      Icons.Outlined.Layers,
+    DynaTabItem(
+      route = DynaRoute.BERANDA,
+      selectedIcon = Icons.Filled.Home,
+      unselectedIcon = Icons.Outlined.Home,
+      testTag = "nav_beranda",
     ),
-    DynaDestination(
-      DynaRoute.AKTIVITAS,
-      R.string.nav_aktivitas,
-      Icons.Filled.Timer,
-      Icons.Outlined.Timer,
+    DynaTabItem(
+      route = DynaRoute.GAYA,
+      selectedIcon = Icons.Filled.Tune,
+      unselectedIcon = Icons.Outlined.Tune,
+      testTag = "nav_gaya",
+    ),
+    DynaTabItem(
+      route = DynaRoute.PENGATURAN,
+      selectedIcon = Icons.Filled.Settings,
+      unselectedIcon = Icons.Outlined.Settings,
+      testTag = "nav_pengaturan",
     ),
   )
 
-private val allDestinations =
-  primaryDestinations +
-    DynaDestination(
-      DynaRoute.PENGATURAN,
-      R.string.nav_pengaturan,
-      Icons.Filled.Settings,
-      Icons.Outlined.Settings,
-    )
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DynaApp(
   appContainer: AppContainer,
+  initialRoute: String? = null,
   viewModel: DynaViewModel = viewModel(factory = DynaViewModel.factory(appContainer)),
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val navController = rememberNavController()
+  val resolvedStartRoute =
+    remember(initialRoute) {
+      if (
+        initialRoute in
+          listOf(
+            DynaRoute.SPLASH,
+            DynaRoute.GATE,
+            DynaRoute.BERANDA,
+            DynaRoute.GAYA,
+            DynaRoute.PENGATURAN,
+          )
+      ) {
+        initialRoute!!
+      } else {
+        DynaRoute.SPLASH
+      }
+    }
   val backStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = backStackEntry?.destination?.route ?: DynaRoute.BERANDA
+  val currentRoute = backStackEntry?.destination?.route ?: resolvedStartRoute
   val snackbarHostState = remember { SnackbarHostState() }
-  val tokens = LocalDynaTokens.current
 
   LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshPermissions() }
 
@@ -133,7 +137,7 @@ fun DynaApp(
     }
   }
 
-  fun navigateTo(route: String) {
+  fun navigateTab(route: String) {
     if (route == currentRoute) return
     navController.navigate(route) {
       popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -142,193 +146,199 @@ fun DynaApp(
     }
   }
 
-  val currentTitleRes =
-    allDestinations.firstOrNull { it.route == currentRoute }?.labelRes ?: R.string.nav_beranda
+  DynaTheme(
+    darkTheme = uiState.settings.dashboardThemeMode == DashboardThemeMode.DARK,
+    language = uiState.settings.language,
+  ) {
+    val tokens = LocalDynaTokens.current
+    val strings = LocalDynaStrings.current
+    val showFloatingPillNav =
+      currentRoute == DynaRoute.BERANDA ||
+        currentRoute == DynaRoute.GAYA ||
+        currentRoute == DynaRoute.PENGATURAN
 
-  BentoCanvasBackground {
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-      val useNavigationRail = maxWidth >= 600.dp
-
-      Scaffold(
-        containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-          TopAppBar(
-            colors =
-              TopAppBarDefaults.topAppBarColors(
-                containerColor = tokens.surfaceCard.copy(alpha = 0.94f),
-                titleContentColor = tokens.textPrimary,
-              ),
-            title = {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                  text =
-                    if (currentRoute == DynaRoute.BERANDA) stringResource(R.string.app_name)
-                    else stringResource(currentTitleRes),
-                  style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                DynaStatusBadge(
-                  text =
-                    when {
-                      uiState.isOverlayAttached -> stringResource(R.string.status_overlay_active)
-                      uiState.permissions.hasOverlayPermission ->
-                        stringResource(R.string.status_overlay_ready)
-                      else -> stringResource(R.string.status_permission_needed)
-                    },
-                  dotColor =
-                    when {
-                      uiState.isOverlayAttached -> tokens.statusOnline
-                      uiState.permissions.hasOverlayPermission -> tokens.accentCyan
-                      else -> tokens.textMuted
-                    },
-                )
-              }
-            },
-            actions = {
-              if (!useNavigationRail) {
-                IconButton(
-                  onClick = { navigateTo(DynaRoute.PENGATURAN) },
-                  modifier = Modifier.testTag("top_bar_settings_button"),
-                ) {
-                  Icon(
-                    imageVector =
-                      if (currentRoute == DynaRoute.PENGATURAN) Icons.Filled.Settings
-                      else Icons.Outlined.Settings,
-                    contentDescription = stringResource(R.string.cd_open_settings),
-                    tint =
-                      if (currentRoute == DynaRoute.PENGATURAN) tokens.accentCyan
-                      else tokens.textSecondary,
-                  )
-                }
-              }
-            },
-          )
-        },
-        bottomBar = {
-          if (!useNavigationRail) {
-            Column {
-              HorizontalDivider(color = tokens.surfaceBorder)
-              NavigationBar(containerColor = tokens.surfaceCard) {
-                primaryDestinations.forEach { dest ->
-                  val selected = currentRoute == dest.route
-                  NavigationBarItem(
-                    selected = selected,
-                    onClick = { navigateTo(dest.route) },
-                    modifier = Modifier.testTag("nav_${dest.route}"),
-                    icon = {
-                      Icon(
-                        imageVector = if (selected) dest.selectedIcon else dest.unselectedIcon,
-                        contentDescription = stringResource(dest.labelRes),
-                      )
-                    },
-                    label = {
-                      Text(
-                        text = stringResource(dest.labelRes),
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                      )
-                    },
-                    colors =
-                      NavigationBarItemDefaults.colors(
-                        selectedIconColor = tokens.accentCyan,
-                        selectedTextColor = tokens.textPrimary,
-                        indicatorColor = tokens.accentGlow,
-                        unselectedIconColor = tokens.textSecondary,
-                        unselectedTextColor = tokens.textSecondary,
-                      ),
-                  )
-                }
-              }
-            }
-          }
-        },
-      ) { innerPadding ->
-        Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-          if (useNavigationRail) {
-            NavigationRail(containerColor = tokens.surfaceCard) {
-              allDestinations.forEach { dest ->
-                val selected = currentRoute == dest.route
-                NavigationRailItem(
-                  selected = selected,
-                  onClick = { navigateTo(dest.route) },
-                  modifier = Modifier.testTag("nav_${dest.route}"),
-                  icon = {
-                    Icon(
-                      imageVector = if (selected) dest.selectedIcon else dest.unselectedIcon,
-                      contentDescription = stringResource(dest.labelRes),
-                    )
-                  },
-                  label = {
-                    Text(
-                      text = stringResource(dest.labelRes),
-                      style = MaterialTheme.typography.bodySmall,
-                      maxLines = 1,
-                    )
-                  },
-                  colors =
-                    NavigationRailItemDefaults.colors(
-                      selectedIconColor = tokens.accentCyan,
-                      selectedTextColor = tokens.textPrimary,
-                      indicatorColor = tokens.accentGlow,
-                      unselectedIconColor = tokens.textSecondary,
-                      unselectedTextColor = tokens.textSecondary,
-                    ),
-                )
-              }
-            }
-            VerticalDivider(color = tokens.surfaceBorder)
-          }
-
+    DynaCanvasBackground {
+      BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+          containerColor = Color.Transparent,
+          snackbarHost = {
+            SnackbarHost(
+              hostState = snackbarHostState,
+              modifier = Modifier.padding(bottom = if (showFloatingPillNav) 96.dp else 16.dp),
+            )
+          },
+        ) { innerPadding ->
           Box(
-            modifier = Modifier.weight(1f).fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding()),
             contentAlignment = Alignment.TopCenter,
           ) {
             NavHost(
               navController = navController,
-              startDestination = DynaRoute.BERANDA,
+              startDestination = resolvedStartRoute,
               modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp),
             ) {
+              composable(DynaRoute.SPLASH) {
+                SplashScreen(
+                  permissions = uiState.permissions,
+                  onSplashCompleted = { hasRequired ->
+                    val nextRoute = if (hasRequired) DynaRoute.BERANDA else DynaRoute.GATE
+                    navController.navigate(nextRoute) {
+                      popUpTo(DynaRoute.SPLASH) { inclusive = true }
+                      launchSingleTop = true
+                    }
+                  },
+                )
+              }
+              composable(DynaRoute.GATE) {
+                PermissionGateScreen(
+                  permissions = uiState.permissions,
+                  onOpenOverlaySettings = viewModel::openOverlaySettings,
+                  onOpenNotificationSettings = viewModel::openNotificationAccessSettings,
+                  onContinue = {
+                    viewModel.setOverlayEnabled(true)
+                    navController.navigate(DynaRoute.BERANDA) {
+                      popUpTo(DynaRoute.GATE) { inclusive = true }
+                      launchSingleTop = true
+                    }
+                  },
+                )
+              }
               composable(DynaRoute.BERANDA) {
                 BerandaScreen(
                   uiState = uiState,
-                  onOverlayEnabledChange = viewModel::setOverlayEnabled,
-                  onOpenOverlaySettings = viewModel::openOverlaySettings,
-                  onOpenNotificationSettings = viewModel::openNotificationAccessSettings,
-                  onRefreshPermissions = viewModel::refreshPermissions,
+                  onAddShortcut = viewModel::addShortcut,
+                  onRemoveShortcut = viewModel::removeShortcut,
+                  onReorderShortcut = viewModel::reorderShortcut,
+                  onDeleteHistoryEntry = viewModel::deleteNotificationHistoryEntry,
+                  onClearHistory = viewModel::clearNotificationHistory,
+                  getAppIconBitmap = viewModel::getAppIconBitmap,
                 )
               }
-              composable(DynaRoute.KAPSUL) {
-                KapsulScreen(
+              composable(DynaRoute.GAYA) {
+                GayaScreen(
                   uiState = uiState,
                   onUpdateAppearance = viewModel::updateAppearance,
                   onResetAppearance = viewModel::resetAppearance,
-                  onSelectPreset = viewModel::setThemePreset,
-                  onUpdateCustomColors = viewModel::updateCustomColors,
-                )
-              }
-              composable(DynaRoute.AKTIVITAS) {
-                AktivitasScreen(
-                  uiState = uiState,
-                  onSetTimerActivityEnabled = viewModel::setTimerActivityEnabled,
+                  onTestNotification = viewModel::triggerTestNotification,
+                  onTestChatNotification = viewModel::triggerTestChatNotification,
+                  onTestCallAndMedia = viewModel::triggerTestCallAndMedia,
+                  onToggleOverlayExpanded = viewModel::togglePreviewOverlayExpanded,
+                  onSelectQuickCategory = viewModel::setPreviewQuickMenuCategory,
+                  onHideIsland = viewModel::hideIsland,
+                  onRestoreIsland = viewModel::restoreIsland,
                   onStartTimer = viewModel::startTimer,
                   onToggleTimerPause = viewModel::toggleTimerPause,
                   onStopTimer = viewModel::stopTimer,
-                  onOpenNotificationSettings = viewModel::openNotificationAccessSettings,
-                  onSetNotificationActivityEnabled = viewModel::setNotificationActivityEnabled,
-                  onSetShowNotificationPreview = viewModel::setShowNotificationPreview,
-                  onSetAutoExpandOnNotification = viewModel::setAutoExpandOnNotification,
+                  onStartStopwatch = viewModel::startStopwatch,
+                  onToggleStopwatchPause = viewModel::toggleStopwatchPause,
+                  onLapStopwatch = viewModel::recordStopwatchLap,
+                  onStopStopwatch = viewModel::stopStopwatch,
+                  onDismissNotification = viewModel::dismissActiveNotification,
+                  onStartReply = viewModel::startReplyInPreview,
+                  onCancelReply = viewModel::cancelReplyInPreview,
+                  onSendSimulatedReply = viewModel::sendSimulatedReply,
+                  onMediaPlayPause = viewModel::toggleSimulatedMediaPlayPause,
+                  onMediaFavorite = viewModel::toggleSimulatedMediaFavorite,
+                  onCallToggleMute = viewModel::toggleCallMute,
+                  onCallToggleVideo = viewModel::toggleCallVideo,
+                  onDismissCall = viewModel::dismissCall,
+                  onLaunchShortcut = viewModel::launchApp,
+                  onOpenCalendarDate = viewModel::openGoogleCalendarForDate,
+                  onRefreshWeather = { viewModel.refreshWeather(force = true) },
+                  onSwapSecondaryActivity = viewModel::swapSecondaryActivity,
+                  getAppIconBitmap = viewModel::getAppIconBitmap,
                 )
               }
               composable(DynaRoute.PENGATURAN) {
                 PengaturanScreen(
                   uiState = uiState,
+                  onRefreshPermissions = viewModel::refreshPermissions,
+                  onSetLanguage = viewModel::setLanguage,
+                  onSetDashboardThemeMode = viewModel::setDashboardThemeMode,
+                  onSetOverlayEnabled = viewModel::setOverlayEnabled,
+                  onSetCalendarEnabled = viewModel::setCalendarEnabled,
+                  onSetWeatherEnabled = viewModel::setWeatherEnabled,
+                  onSetShortcutsEnabled = viewModel::setShortcutsEnabled,
+                  onSetNotificationActivityEnabled = viewModel::setNotificationActivityEnabled,
+                  onSetShowNotificationPreview = viewModel::setShowNotificationPreview,
+                  onSetMediaActivityEnabled = viewModel::setMediaActivityEnabled,
+                  onSetCallActivityEnabled = viewModel::setCallActivityEnabled,
+                  onSetBatteryActivityEnabled = viewModel::setBatteryActivityEnabled,
+                  onSetTimerActivityEnabled = viewModel::setTimerActivityEnabled,
+                  onSetStopwatchEnabled = viewModel::setStopwatchEnabled,
+                  onSetPrayerAlarmEnabled = viewModel::setPrayerAlarmEnabled,
+                  onSetHideTopDotEnabled = viewModel::setHideTopDotEnabled,
+                  onSearchCities = viewModel::searchCities,
+                  onClearCitySearch = viewModel::clearCitySearch,
+                  onSelectCity = { name, lat, lon ->
+                    viewModel.selectCity(name, lat, lon, isGps = false)
+                  },
+                  onUseCurrentGpsLocation = viewModel::useCurrentGpsLocation,
                   onResetAllSettings = viewModel::resetAllSettings,
                 )
               }
             }
           }
+        }
+
+        if (showFloatingPillNav) {
+          FloatingIconOnlyPillNavBar(
+            currentRoute = currentRoute,
+            onNavigate = ::navigateTab,
+            contentDescriptions =
+              mapOf(
+                DynaRoute.BERANDA to strings.navHomeCd,
+                DynaRoute.GAYA to strings.navStyleCd,
+                DynaRoute.PENGATURAN to strings.navSettingsCd,
+              ),
+            modifier =
+              Modifier.align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 20.dp),
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun FloatingIconOnlyPillNavBar(
+  currentRoute: String,
+  onNavigate: (String) -> Unit,
+  contentDescriptions: Map<String, String>,
+  modifier: Modifier = Modifier,
+) {
+  val tokens = LocalDynaTokens.current
+  Surface(
+    modifier = modifier.height(64.dp).testTag("floating_bottom_nav_pill"),
+    shape = CircleShape,
+    color = tokens.surfaceCard,
+    border = BorderStroke(1.dp, tokens.borderHairline),
+    shadowElevation = 0.dp,
+  ) {
+    Row(
+      modifier = Modifier.padding(horizontal = 12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      primaryTabs.forEach { tab ->
+        val selected = currentRoute == tab.route
+        Box(
+          modifier =
+            Modifier.size(48.dp)
+              .clip(CircleShape)
+              .background(if (selected) tokens.surfaceRaised else Color.Transparent)
+              .clickable(role = Role.Tab) { onNavigate(tab.route) }
+              .testTag(tab.testTag),
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+            imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
+            contentDescription = contentDescriptions[tab.route] ?: tab.route,
+            tint = if (selected) tokens.accentPrimary else tokens.textMuted,
+            modifier = Modifier.size(22.dp),
+          )
         }
       }
     }

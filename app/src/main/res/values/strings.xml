@@ -38,9 +38,10 @@
     <string name="fgs_notif_body">Ketuk Matikan untuk menutup kapsul mengambang.</string>
     <string name="fgs_action_stop">Matikan</string>
 
-    <!-- Kapsul (Tampilan + Tema) -->
+    <!-- Kapsul (Tampilan + Tema + Idle) -->
     <string name="kapsul_seg_geometry">Geometri</string>
     <string name="kapsul_seg_theme">Tema</string>
+    <string name="kapsul_seg_idle">Idle</string>
     <string name="kapsul_live_hint_on">Perubahan langsung diterapkan ke kapsul di atas layar.</string>
     <string name="kapsul_live_hint_off">Aktifkan overlay di Beranda agar perubahan terlihat langsung di atas layar.</string>
     <string name="tampilan_width">Lebar</string>
@@ -52,6 +53,20 @@
     <string name="tampilan_anim_speed">Kecepatan</string>
     <string name="tampilan_auto_collapse">Tutup Otomatis</string>
     <string name="tampilan_reset">Reset Geometri</string>
+    <string name="idle_mode_section">GAYA TAMPILAN IDLE</string>
+    <string name="idle_placement_section">POSISI IDLE</string>
+    <string name="idle_tap_section">AKSI KETUK TUNGGAL</string>
+    <string name="idle_expression_section">EKSPRESI MONOKROM</string>
+    <string name="idle_auto_dim">Redup Otomatis</string>
+    <string name="idle_auto_dim_desc">Turunkan opasitas kapsul saat diam atau menyentuh layar di luar kapsul.</string>
+    <string name="idle_dimmed_opacity">Opasitas Redup</string>
+
+    <!-- Island Reply -->
+    <string name="pill_reply_action">Balas</string>
+    <string name="pill_reply_placeholder">Ketik balasan...</string>
+    <string name="pill_reply_send_cd">Kirim balasan</string>
+    <string name="pill_reply_cancel_cd">Batal membalas</string>
+    <string name="pill_reply_failed">Balasan gagal dikirim. Buka aplikasi pesan untuk membalas.</string>
 
     <!-- Tema -->
     <string name="tema_selected">Dipilih</string>
@@ -63,9 +78,10 @@
     <string name="tema_color_accent">Aksen</string>
     <string name="tema_color_icon">Ikon</string>
 
-    <!-- Aktivitas (Timer + Notifikasi) -->
+    <!-- Aktivitas (Timer + Notifikasi + Layanan) -->
     <string name="aktivitas_seg_timer">Timer</string>
     <string name="aktivitas_seg_notifikasi">Notifikasi</string>
+    <string name="aktivitas_seg_layanan">Layanan</string>
     <string name="aktivitas_timer_enable">Tampilkan Timer di Kapsul</string>
     <string name="aktivitas_timer_enable_desc">Hitung mundur tetap tampil selama overlay aktif.</string>
     <string name="aktivitas_timer_idle">Tidak ada timer berjalan</string>
@@ -74,16 +90,35 @@
     <string name="aktivitas_pause">Jeda</string>
     <string name="aktivitas_resume">Lanjut</string>
     <string name="aktivitas_stop">Hentikan</string>
+    <string name="aktivitas_stopwatch_enable">Aktifkan Stopwatch</string>
+    <string name="aktivitas_stopwatch_enable_desc">Jalankan stopwatch dari panel pintasan kapsul atau di sini.</string>
+    <string name="aktivitas_stopwatch_start">Mulai Stopwatch</string>
+    <string name="aktivitas_stopwatch_lap">Catat Lap</string>
 
-    <!-- Notifikasi -->
+    <!-- Notifikasi & Sistem -->
     <string name="notif_privacy_banner">Dyna hanya memproses notifikasi di perangkat saat Anda mengaktifkan akses dan tidak mengirim data ke mana pun.</string>
     <string name="notif_locked_notice">Aktifkan Akses Notifikasi di Pengaturan Android untuk membaca notifikasi masuk.</string>
     <string name="notif_enable_feature">Tampilkan Notifikasi Masuk</string>
-    <string name="notif_enable_feature_desc">Teruskan notifikasi sistem ke kapsul atas layar.</string>
+    <string name="notif_enable_feature_desc">Teruskan notifikasi ke kapsul, balas chat langsung, dan otomatis kembali ke idle saat selesai.</string>
     <string name="notif_show_preview">Tampilkan Isi Pesan</string>
     <string name="notif_show_preview_desc">Sembunyikan teks detail pesan saat dinonaktifkan.</string>
     <string name="notif_auto_expand">Perluas Otomatis</string>
-    <string name="notif_auto_expand_desc">Kapsul otomatis terbuka sejenak saat notifikasi tiba.</string>
+    <string name="notif_auto_expand_desc">Kapsul otomatis terbuka sejenak saat notifikasi tiba lalu kembali ke tampilan idle.</string>
+    <string name="sys_media_title">Kontrol Musik &amp; Media</string>
+    <string name="sys_media_desc">Deteksi Spotify, YouTube Music, dan pemutar media aktif melalui MediaSession.</string>
+    <string name="sys_call_title">Panggilan Suara &amp; Video</string>
+    <string name="sys_call_desc">Tampilkan banner panggilan prioritas tinggi beserta tombol Jawab/Tolak.</string>
+    <string name="sys_battery_title">Pengisian &amp; Baterai Lemah</string>
+    <string name="sys_battery_desc">Tampilkan status pengisian daya dan peringatan baterai lemah di kapsul.</string>
+    <string name="sys_prayer_alarm_title">Alarm Pengingat Waktu Shalat</string>
+    <string name="sys_prayer_alarm_desc">Tampilkan pengingat jadwal shalat wajib otomatis di kapsul.</string>
+
+    <!-- Layanan: Cuaca, Shalat & Pintasan -->
+    <string name="layanan_weather_section">CUACA &amp; LOKASI</string>
+    <string name="layanan_prayer_section">JADWAL SHALAT HARIAN</string>
+    <string name="layanan_shortcuts_section">SLOT PINTASAN APLIKASI (4 SLOT)</string>
+    <string name="layanan_use_gps">Gunakan Lokasi GPS</string>
+    <string name="layanan_refresh_weather">Muat Ulang Cuaca</string>
 
     <!-- Pengaturan -->
     <string name="pengaturan_general_section">SISTEM &amp; RESET</string>
@@ -98,5 +133,5 @@
     <string name="pengaturan_install_guide_section">PANDUAN INSTALASI HP</string>
     <string name="pengaturan_install_guide_body">1. Jika muncul peringatan Play Protect, ketuk \"Rincian selengkapnya\" lalu pilih \"Tetap instal\".\n2. Hapus (uninstall) versi lama terlebih dahulu jika instalasi baru gagal karena konflik signature.</string>
     <string name="pengaturan_about_section">DIAGNOSTIK</string>
-    <string name="pengaturan_version_label">Dyna v1.1</string>
+    <string name="pengaturan_version_label">Dyna v1.2</string>
 </resources>

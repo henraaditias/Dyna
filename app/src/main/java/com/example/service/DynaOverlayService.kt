@@ -1,13 +1,17 @@
 package com.example.service
 
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
@@ -17,6 +21,11 @@ import com.example.DynaApplication
 import com.example.MainActivity
 import com.example.R
 import com.example.domain.model.ActivityType
+import com.example.domain.model.IdlePlacement
+import com.example.domain.model.QuickMenuCategory
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,12 +34,16 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class DynaOverlayService : Service() {
 
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
   private var autoCollapseJob: Job? = null
+  private var autoDimJob: Job? = null
+  private var midnightPurgeJob: Job? = null
+  private var systemEventsReceiver: BroadcastReceiver? = null
 
   override fun onCreate() {
     super.onCreate()
@@ -54,48 +67,203 @@ class DynaOverlayService : Service() {
       startForeground(NOTIFICATION_ID, notification)
     }
 
-    container.overlayWindowController.attachIfPermitted(topOffsetDp = 8f)
+    syncDeviceState()
+    registerSystemEventsReceiver()
+    scheduleMidnightHistoryPurge()
 
-    // Observe appearance updates live so sliders/themes immediately reflect at top of screen
+    container.batteryMonitor.start()
+    container.weatherAndPrayerProvider.refreshSchedule()
     serviceScope.launch {
-      container.settingsRepository.settings.collectLatest { settings ->
-        container.permissionStateProvider.refresh()
-        if (!Settings.canDrawOverlays(this@DynaOverlayService)) {
-          container.overlayWindowController.detach()
-          container.settingsRepository.setOverlayEnabled(false)
-          stopSelf()
-          return@collectLatest
+      container.notificationHistoryRepository.purgeIfDayChangedOrRebooted()
+      container.weatherAndPrayerProvider.refreshWeather(force = false)
+    }
+    container.overlayWindowController.attachIfPermitted(topOffsetDp = 10f, horizontalOffsetDp = 0f)
+
+    // Observe appearance updates live so sliders/themes/placement immediately reflect at top
+    serviceScope.launch {
+      combine(
+          container.settingsRepository.settings,
+          container.activityRepository.isIslandHidden,
+        ) { settings, hidden -> settings to hidden }
+        .collectLatest { (settings, hidden) ->
+          container.permissionStateProvider.refresh()
+          if (!Settings.canDrawOverlays(this@DynaOverlayService)) {
+            container.overlayWindowController.detach()
+            container.settingsRepository.setOverlayEnabled(false)
+            stopSelf()
+            return@collectLatest
+          }
+          if (!settings.isOverlayEnabled) {
+            container.overlayWindowController.detach()
+            stopSelf()
+            return@collectLatest
+          }
+          val effectiveTopOffset =
+            when {
+              hidden -> 0f
+              settings.appearance.idlePlacement == IdlePlacement.FIXED_TOP -> 0f
+              else -> settings.appearance.topOffsetDp
+            }
+          val effectiveHorizontalOffset =
+            if (hidden) 0f else settings.appearance.horizontalOffsetDp
+          container.overlayWindowController.attachIfPermitted(
+            topOffsetDp = effectiveTopOffset,
+            horizontalOffsetDp = effectiveHorizontalOffset,
+          )
         }
-        if (!settings.isOverlayEnabled) {
-          container.overlayWindowController.detach()
-          stopSelf()
-          return@collectLatest
-        }
-        container.overlayWindowController.attachIfPermitted(settings.appearance.topOffsetDp)
-      }
     }
 
-    // Auto-collapse notifications or non-timer expanded panels based on user setting
+    // Hide overlay on lock screen and in landscape unless showing a temporary notification
+    serviceScope.launch {
+      combine(
+          container.activityRepository.isDeviceLocked,
+          container.activityRepository.isLandscape,
+          container.activityRepository.currentActivity,
+        ) { locked, landscape, activity ->
+          !(locked || (landscape && activity.type != ActivityType.NOTIFICATION))
+        }
+        .collectLatest { shouldBeVisible ->
+          container.overlayWindowController.setVisible(shouldBeVisible)
+        }
+    }
+
+    // Auto-finish notifications directly back to Idle unless user is actively replying
     serviceScope.launch {
       combine(
           container.settingsRepository.settings,
           container.activityRepository.currentActivity,
+          container.activityRepository.isReplying,
           container.activityRepository.isOverlayExpanded,
-        ) { settings, activity, expanded ->
-          Triple(settings.appearance.autoCollapseSeconds, activity, expanded)
+          container.activityRepository.quickMenuCategory,
+        ) { settings, activity, isReplying, expanded, quickCategory ->
+          TimeoutObservation(
+            autoSeconds = settings.appearance.autoCollapseSeconds,
+            autoDimEnabled = settings.appearance.autoDimEnabled,
+            autoDimDelaySeconds = settings.appearance.autoDimDelaySeconds,
+            activityType = activity.type,
+            activityId = activity.id,
+            eventVersion = activity.eventVersion,
+            isReplying = isReplying,
+            expanded = expanded,
+            quickCategory = quickCategory,
+          )
         }
-        .collectLatest { (collapseSeconds, activity, expanded) ->
+        .collectLatest { obs ->
           autoCollapseJob?.cancel()
-          if (expanded && collapseSeconds > 0 && activity.type == ActivityType.NOTIFICATION) {
+          autoDimJob?.cancel()
+
+          if (obs.autoSeconds > 0 && obs.activityType == ActivityType.NOTIFICATION && !obs.isReplying) {
             autoCollapseJob =
               launch {
-                delay(collapseSeconds * 1000L)
+                delay(obs.autoSeconds * 1000L)
+                container.notificationReplyManager.remove(obs.activityId)
+                container.activityRepository.dismissActiveNotification()
+              }
+          } else if (
+            obs.autoSeconds > 0 &&
+              obs.activityType == ActivityType.IDLE &&
+              obs.expanded &&
+              obs.quickCategory != QuickMenuCategory.NONE
+          ) {
+            autoCollapseJob =
+              launch {
+                delay((obs.autoSeconds.coerceAtLeast(8)) * 1000L)
                 container.activityRepository.setOverlayExpanded(false)
+              }
+          }
+
+          if (
+            obs.autoDimEnabled &&
+              obs.activityType == ActivityType.IDLE &&
+              !obs.expanded &&
+              !container.activityRepository.isIslandHidden.value
+          ) {
+            autoDimJob =
+              launch {
+                delay(obs.autoDimDelaySeconds.coerceIn(2, 30) * 1000L)
+                container.activityRepository.setDimmed(true)
               }
           }
         }
     }
   }
+
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    val container = (application as DynaApplication).container
+    container.activityRepository.setLandscape(
+      newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
+    )
+  }
+
+  private fun syncDeviceState() {
+    val container = (application as DynaApplication).container
+    val keyguard = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+    container.activityRepository.setDeviceLocked(keyguard?.isKeyguardLocked == true)
+    container.activityRepository.setLandscape(
+      resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    )
+  }
+
+  private fun registerSystemEventsReceiver() {
+    val container = (application as DynaApplication).container
+    val receiver =
+      object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+          when (intent?.action) {
+            Intent.ACTION_SCREEN_OFF -> container.activityRepository.setDeviceLocked(true)
+            Intent.ACTION_USER_PRESENT -> {
+              val keyguard = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+              container.activityRepository.setDeviceLocked(keyguard?.isKeyguardLocked == true)
+            }
+            Intent.ACTION_DATE_CHANGED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED -> {
+              serviceScope.launch {
+                container.notificationHistoryRepository.purgeIfDayChangedOrRebooted()
+              }
+            }
+          }
+        }
+      }
+    val filter =
+      IntentFilter().apply {
+        addAction(Intent.ACTION_SCREEN_OFF)
+        addAction(Intent.ACTION_USER_PRESENT)
+        addAction(Intent.ACTION_DATE_CHANGED)
+        addAction(Intent.ACTION_TIME_CHANGED)
+        addAction(Intent.ACTION_TIMEZONE_CHANGED)
+      }
+    ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+    systemEventsReceiver = receiver
+  }
+
+  private fun scheduleMidnightHistoryPurge() {
+    val container = (application as DynaApplication).container
+    midnightPurgeJob?.cancel()
+    midnightPurgeJob =
+      serviceScope.launch {
+        while (isActive) {
+          val now = LocalDateTime.now()
+          val nextMidnight = LocalDate.now().plusDays(1).atStartOfDay().plusSeconds(2)
+          val waitMs = Duration.between(now, nextMidnight).toMillis().coerceAtLeast(10_000L)
+          delay(waitMs)
+          container.notificationHistoryRepository.purgeIfDayChangedOrRebooted()
+        }
+      }
+  }
+
+  private data class TimeoutObservation(
+    val autoSeconds: Int,
+    val autoDimEnabled: Boolean,
+    val autoDimDelaySeconds: Int,
+    val activityType: ActivityType,
+    val activityId: String,
+    val eventVersion: Long,
+    val isReplying: Boolean,
+    val expanded: Boolean,
+    val quickCategory: QuickMenuCategory,
+  )
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     if (intent?.action == ACTION_STOP_OVERLAY) {
@@ -118,7 +286,13 @@ class DynaOverlayService : Service() {
 
   override fun onDestroy() {
     autoCollapseJob?.cancel()
-    (application as DynaApplication).container.overlayWindowController.detach()
+    autoDimJob?.cancel()
+    midnightPurgeJob?.cancel()
+    systemEventsReceiver?.let { runCatching { unregisterReceiver(it) } }
+    systemEventsReceiver = null
+    val container = (application as DynaApplication).container
+    container.batteryMonitor.stop()
+    container.overlayWindowController.detach()
     serviceScope.cancel()
     super.onDestroy()
   }
